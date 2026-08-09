@@ -1,0 +1,27 @@
+// ردیف‌های پیش‌فرض مراحل ترخیص.
+// perContainer: true یعنی مبلغ در تعداد کانتینر ضرب می‌شود.
+export const DEFAULT_CLEARANCE_ROWS = [
+  { id: 1, label: "ترخیصیه کشتیرانی", amount: 0, perContainer: false },
+  { id: 2, label: "تحویل اسناد", amount: 0, perContainer: false },
+  { id: 3, label: "گواهی بازرسی", amount: 10000000, perContainer: false },
+  { id: 4, label: "بیمه‌نامه باربری", amount: 10000000, perContainer: false },
+  { id: 5, label: "تنظیم سند — کوتاژ", amount: 1000000, perContainer: false },
+  { id: 6, label: "ارزیابی — کارشناسی", amount: 10000000, perContainer: false },
+  { id: 7, label: "تعیین ماهیت", amount: 20000000, perContainer: false },
+  { id: 8, label: "استاندارد", amount: 50000000, perContainer: false },
+  { id: 9, label: "بهداشت", amount: 0, perContainer: false },
+  { id: 10, label: "پایانه", amount: 0, perContainer: false },
+  { id: 11, label: "کد ساتا — پروانه", amount: 0, perContainer: false },
+  { id: 12, label: "عوارض بندری", amount: 20000000, perContainer: true },
+  { id: 13, label: "اجازه بارگیری", amount: 0, perContainer: false },
+  { id: 14, label: "کارمزد ترخیص", amount: 50000000, perContainer: true },
+  { id: 15, label: "بارگیری — خروج", amount: 0, perContainer: false },
+  { id: 16, label: "هزینه انبار", amount: 20000000, perContainer: false },
+  { id: 17, label: "رفع تعهد بانک", amount: 0, perContainer: false },
+  { id: 18, label: "تسویه کشتیرانی", amount: 0, perContainer: false },
+  { id: 19, label: "بازبینی", amount: 50000000, perContainer: false },
+  { id: 20, label: "کارمزد حق‌العمل", amount: 50000000, perContainer: true },
+  { id: 21, label: "کرایه حمل زمینی — بوشهر تا تهران", amount: 150000000, perContainer: true },
+  { id: 22, label: "کارمزد ثبت سفارش", amount: 20000000, perContainer: false },
+  { id: 23, label: "سایر هزینه‌ها", amount: 0, perContainer: false },
+];
