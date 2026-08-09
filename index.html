@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0F3037" />
+    <meta name="description" content="محاسبه‌گر بهای تمام‌شده واردات — رویه گمرکی و رویه ملوانی" />
+    <title>محاسبه‌گر بهای تمام‌شده واردات</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+
+  <body>
+    <div class="gk">
+      <div class="wrap">
+        <header class="masthead">
+          <div>
+            <h1 class="mast-t">بهای تمام‌شده واردات</h1>
+            <p class="mast-s">رویه گمرکی و ملوانی · از ارزش اظهار تا سود هر واحد</p>
+          </div>
+          <div class="unitbar" id="unitbar"></div>
+        </header>
+
+        <!-- ساختار بهای تمام‌شده -->
+        <section class="hero">
+          <div class="hero-top" id="hero-figs"></div>
+
+          <div class="axis-lbl">
+            <span>ساختار بهای تمام‌شده محموله</span>
+            <span class="num" id="cost-total"></span>
+          </div>
+          <div class="bar" id="bar-cost"></div>
+
+          <div class="axis-lbl" style="margin-top: 12px">
+            <span>درآمد فروش</span>
+            <span class="num" id="rev-total"></span>
+          </div>
+          <div class="bar" id="bar-rev"></div>
+
+          <div class="legend" id="legend"></div>
+        </section>
+
+        <!-- صورت اول: مقایسه رویه‌ها -->
+        <section class="panel">
+          <div class="phead">
+            <span class="ptag">01</span>
+            <h2 class="ptitle">مقایسه رویه‌ها</h2>
+          </div>
+          <div class="pbody">
+            <div class="pickbar" id="pickbar"></div>
+            <div class="scrollhint">← برای دیدن ستون‌ها، جدول را چپ و راست بکشید →</div>
+            <div class="scrollx" tabindex="0" role="region" aria-label="جدول مقایسه رویه‌ها">
+              <table class="mtx">
+                <colgroup id="mtx-cols"></colgroup>
+                <thead id="mtx-head"></thead>
+                <tbody id="mtx-body"></tbody>
+              </table>
+            </div>
+            <div class="note info" style="margin-top: 14px" id="mel-note"></div>
+          </div>
+        </section>
+
+        <!-- ورودی‌ها -->
+        <section class="panel">
+          <div class="phead">
+            <span class="ptag">INPUT</span>
+            <h2 class="ptitle">ورودی‌های اظهارنامه</h2>
+          </div>
+          <div class="pbody">
+            <div class="grid" id="inputs-grid"></div>
+            <div class="note info" style="margin-top: 16px">
+              <span>
+                <b>سه کرایه با هم اشتباه نشوند.</b> «کرایه حمل بین‌المللی» ترم CFR / CPT است و جزو
+                ارزش گمرکی می‌آید (<code>CIF = ارزش کالا + کرایه + بیمه</code>)، پس ماخذ و ارزش
+                افزوده و عوارض روی آن هم اخذ می‌شود — در رویه ملوانی که فاکتور CFR تا کشور همسایه
+                است، این کرایه داخل ارزش کالا لحاظ شده و باید صفر بماند. «کرایه لنج» از کشور همسایه
+                تا ایران در صورت رویه لنجی می‌آید، اما بیرون از ارزش گمرکی است و ماخذ روی آن اخذ
+                نمی‌شود. «کرایه حمل زمینی — بوشهر تا تهران» هم بعد از ترخیص است و در ارزش گمرکی
+                نمی‌آید.
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <div class="two">
+          <section class="panel">
+            <div class="phead">
+              <span class="ptag">02</span>
+              <h2 class="ptitle">خرید کالا</h2>
+            </div>
+            <div class="pbody" id="purchase-out"></div>
+          </section>
+
+          <section class="panel">
+            <div class="phead">
+              <span class="ptag">03</span>
+              <h2 class="ptitle">تحلیل مالیاتی خارج از گمرک</h2>
+            </div>
+            <div class="pbody">
+              <div class="grid" style="margin-bottom: 16px" id="tax-inputs"></div>
+              <div id="tax-out"></div>
+              <div class="note" style="margin-top: 14px">
+                <span>
+                  مبنا <b>ارزش اظهاری</b> است (ارزش گمرکی + جمع حقوق و عوارض)، نه بهای تمام‌شده
+                  واقعی. کرایه لنج در این مبنا نمی‌آید چون خارج از اظهار است.
+                </span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- مراحل ترخیص -->
+        <section class="panel">
+          <div class="phead">
+            <span class="ptag">04</span>
+            <h2 class="ptitle">مراحل ترخیص</h2>
+          </div>
+          <div class="pbody">
+            <div class="scrollhint">← برای دیدن ستون مبلغ مؤثر، جدول را چپ و راست بکشید →</div>
+            <div class="scrollx" tabindex="0" role="region" aria-label="جدول مراحل ترخیص">
+              <table class="ctab">
+                <thead>
+                  <tr>
+                    <th style="width: 42%">شرح</th>
+                    <th class="l" style="width: 21%">مبلغ پایه</th>
+                    <th class="c" style="width: 13%">کانتینری</th>
+                    <th class="l" style="width: 20%">مبلغ مؤثر</th>
+                    <th style="width: 4%"></th>
+                  </tr>
+                </thead>
+                <tbody id="clearance-body"></tbody>
+                <tfoot>
+                  <tr class="sum">
+                    <td>جمع هزینه‌های ترخیص</td>
+                    <td></td>
+                    <td></td>
+                    <td class="eff" id="clearance-total" style="color: var(--ink); font-size: 14px"></td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <button class="addrow" id="add-row">افزودن ردیف</button>
+            <div class="note" style="margin-top: 14px">
+              <span>
+                ردیف‌های «کانتینری» در تعداد کانتینر (<span class="num" id="cont-echo"></span>) ضرب
+                می‌شوند؛ بقیه ثابت‌اند.
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="warn-panel" hidden>
+          <div class="phead">
+            <span class="ptag">CHECK</span>
+            <h2 class="ptitle">هشدارها</h2>
+          </div>
+          <div class="pbody" id="warnings"></div>
+        </section>
+
+        <p class="foot" id="foot"></p>
+      </div>
+    </div>
+
+    <script type="module" src="./assets/js/app.js"></script>
+  </body>
+</html>
