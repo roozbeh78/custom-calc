@@ -29,6 +29,10 @@ const SEG_COLORS = {
 /** ورودی‌هایی که suffix پویا دارند، برای به‌روزرسانی بعد از هر محاسبه. */
 const dynamicSuffixes = [];
 
+/** خلاصه‌هایی که کنار عنوان بخش‌های جمع‌شده نشان داده می‌شوند. */
+const peeks = [];
+const addPeek = (node, fn) => peeks.push({ node, fn });
+
 /* ------------------------------------------------------------------ */
 /*  ساخت یک‌باره‌ی ورودی‌ها                                             */
 /*  ورودی‌ها فقط یک بار ساخته می‌شوند تا موقع تایپ فوکوس از دست نرود.   */
@@ -75,13 +79,17 @@ function checkField(field) {
 const buildField = (f) => (f.type === "check" ? checkField(f) : numberField(f));
 
 function buildInputs() {
-  const grid = $("#inputs-grid");
-  const nodes = [];
-  for (const group of FIELD_GROUPS) {
-    nodes.push(el("div", { class: "fgroup" }, group.title));
-    for (const f of group.fields) nodes.push(buildField(f));
-  }
-  fill(grid, nodes);
+  const groups = FIELD_GROUPS.map((group) => {
+    const gpeek = el("span", { class: "gpeek" });
+    if (group.peek) addPeek(gpeek, group.peek);
+
+    return el("details", {},
+      el("summary", {}, group.title, gpeek),
+      el("div", { class: "acc-body" }, group.fields.map(buildField))
+    );
+  });
+
+  fill($("#inputs-acc"), groups);
   fill($("#tax-inputs"), TAX_FIELDS.map(buildField));
 }
 
@@ -162,8 +170,35 @@ function clearanceRow(row) {
   return tr;
 }
 
+/** ردیف کرایه لنج — همیشه دیده می‌شود، ولی فقط در رویه ملوانی سرشکن می‌شود. */
+function lenjRow() {
+  const effCell = el("td", { class: "eff" });
+
+  const amount = el("input", {
+    type: "text",
+    inputmode: "decimal",
+    value: fmt(state.lenjFreight),
+    "aria-label": "کرایه لنج",
+  });
+  amount.addEventListener("input", () => {
+    state.lenjFreight = parse(amount.value);
+    render();
+  });
+  amount.addEventListener("blur", () => { amount.value = fmt(state.lenjFreight); });
+
+  const tr = el("tr", { class: "melrow" },
+    el("td", {}, el("span", { class: "melname" }, "کرایه لنج"), pill("فقط رویه ملوانی")),
+    el("td", {}, amount),
+    el("td", { class: "c" }, "—"),
+    effCell,
+    el("td", {})
+  );
+  tr._lenjEff = effCell;
+  return tr;
+}
+
 function buildClearance() {
-  fill($("#clearance-body"), state.rows.map(clearanceRow));
+  fill($("#clearance-body"), state.rows.map(clearanceRow), lenjRow());
 }
 
 /* ------------------------------------------------------------------ */
@@ -192,7 +227,7 @@ function renderHero(c) {
     { key: "عوارض جنگی", v: c.active.war, color: SEG_COLORS.war },
     { key: "مالیات علی‌الحساب", v: c.active.tax2, color: SEG_COLORS.tax2 },
     { key: "کرایه لنج", v: c.lenj, color: SEG_COLORS.lenj },
-    { key: "ترخیص و حمل زمینی", v: c.clearance + state.waste, color: SEG_COLORS.clearance },
+    { key: "ترخیص و حمل زمینی", v: c.clearance - c.lenj + state.waste, color: SEG_COLORS.clearance },
   ].filter((s) => s.v > 0);
 
   const axisMax = Math.max(c.landed, c.revenue, 1);
@@ -252,7 +287,6 @@ function renderMatrix(c) {
   );
 
   const per = (v) => (state.qty > 0 ? v / state.qty : NaN);
-  const clearancePerUnit = per(c.clearance + state.waste);
   const divisor = "÷ " + fmt(state.qty);
 
   fill($("#mtx-body"),
@@ -261,11 +295,14 @@ function renderMatrix(c) {
     matrixRow("ارزش افزوده", (s) => fmt(s.vat), c, { pill: `${state.vatRate}٪ / ${state.melVatRate}٪` }),
     matrixRow("عوارض جنگی", (s) => fmt(s.war), c, { pill: `${(state.warLevy / 10).toFixed(1)}٪` }),
     matrixRow("مالیات علی‌الحساب", (s) => fmt(s.tax2), c, { pill: `${state.prepaidTax}٪` }),
-    matrixRow("جمع حقوق و عوارض", (s) => fmt(s.levies), c),
-    matrixRow("کرایه لنج", (s) => (s.lenj > 0 ? fmt(s.lenj) : "—"), c, { pill: "بدون ماخذ" }),
-    matrixRow("جمع صورت رویه", (s) => fmt(s.total), c, { class: "tot" }),
+    matrixRow("جمع صورت رویه", (s) => fmt(s.levies), c, { class: "tot" }),
     matrixRow("حقوق و عوارض هر واحد", (s) => fmt(per(s.levies)), c, { class: "perunit", pill: divisor }),
-    matrixRow("هزینه ترخیص هر واحد", () => fmt(clearancePerUnit), c, { pill: divisor })
+    el("tr", {},
+      el("td", { class: "k" }, "هزینه ترخیص هر واحد", pill(divisor)),
+      ...SCENARIOS.map((k) =>
+        el("td", { class: "n" }, fmt(per(c.clearanceBy[k] + state.waste)))
+      )
+    )
   );
 
   $("#mel-note").replaceChildren(
@@ -299,8 +336,8 @@ function renderPurchase(c) {
     table(
       row("هزینه خرید هر واحد", fmt(per(c.purchase))),
       row("حقوق و عوارض هر واحد", fmt(per(c.active.levies))),
-      c.lenj > 0 ? row("کرایه لنج هر واحد", fmt(per(c.lenj))) : null,
-      row("هزینه ترخیص هر واحد", fmt(per(c.clearance + state.waste))),
+      row("هزینه ترخیص هر واحد", fmt(per(c.clearance + state.waste)), c.lenj > 0 ? { pill: "شامل کرایه لنج" } : {}),
+      c.lenj > 0 ? row("از آن، کرایه لنج", fmt(per(c.lenj)), { sub: true }) : null,
       row("بهای تمام‌شده هر واحد", fmt(c.perUnit), { class: "tot" })
     ),
     el("div", { style: { height: "14px" } }),
@@ -335,7 +372,13 @@ function renderTax(c) {
 }
 
 function renderClearance(c) {
+  const isMel = state.scenario === "mel";
   for (const tr of $("#clearance-body").children) {
+    if (tr._lenjEff) {
+      tr._lenjEff.textContent = isMel ? fmt(state.lenjFreight) : "—";
+      tr.classList.toggle("inactive", !isMel);
+      continue;
+    }
     const r = tr._row;
     tr._eff.textContent = fmt(r.amount * (r.perContainer ? state.containers : 1));
   }
@@ -363,10 +406,21 @@ function renderFoot() {
 /*  چرخه‌ی رندر                                                        */
 /* ------------------------------------------------------------------ */
 
+function renderPeeks(c) {
+  const u = state.unit;
+  $("#peek-matrix").textContent = `${SCENARIO_NAMES[state.scenario]} · ${fmt(c.active.levies)}`;
+  $("#peek-inputs").textContent = `ارزش گمرکی ${fmt(c.customsValue)}`;
+  $("#peek-purchase").textContent = `هر واحد ${fmt(c.perUnit)} ${u}`;
+  $("#peek-clearance").textContent = fmt(c.clearance);
+  $("#peek-tax").textContent = fmt(c.taxTotal);
+  for (const p of peeks) p.node.textContent = p.fn(state, c);
+}
+
 function render() {
   const c = compute(state);
 
   for (const d of dynamicSuffixes) d.node.textContent = d.fn(state, c);
+  renderPeeks(c);
 
   renderHero(c);
   renderMatrix(c);

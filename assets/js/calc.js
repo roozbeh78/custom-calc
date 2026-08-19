@@ -9,19 +9,19 @@
  *    (ارزش گمرکی + حقوق ورودی) محاسبه می‌شوند.
  *  • تخفیف به‌جای کسر در انتها، از ابتدا با ماخذ پایین‌تر اجرا می‌شود تا
  *    کاهش پایه‌ی ارزش افزوده و عوارض هم لحاظ شود.
- *  • کرایه لنج در صورت رویه لنجی می‌آید ولی بیرون از ارزش گمرکی است؛
- *    ماخذ روی آن اخذ نمی‌شود و وارد مبنای مالیاتی هم نمی‌شود.
+ *  • کرایه لنج جزو هزینه‌های ترخیص است، نه صورت رویه. فقط وقتی رویه
+ *    ملوانی فعال باشد سرشکن می‌شود و هرگز با رویه گمرکی جمع نمی‌شود.
  */
 
 /** یک رویه را با ماخذ و نرخ ارزش افزوده‌ی مشخص اجرا می‌کند. */
-export function runProcedure({ rate, customsValue, vatRate, warLevy, prepaidTax, extra = 0 }) {
+export function runProcedure({ rate, customsValue, vatRate, warLevy, prepaidTax }) {
   const duty = customsValue * (rate / 100);
   const base = customsValue + duty;
   const vat = base * (vatRate / 100);
   const war = base * (warLevy / 1000);
   const tax2 = base * (prepaidTax / 100);
   const levies = duty + vat + war + tax2;
-  return { rate, cv: customsValue, duty, base, vat, war, tax2, levies, lenj: extra, total: levies + extra };
+  return { rate, cv: customsValue, duty, base, vat, war, tax2, levies, total: levies };
 }
 
 /** جمع هزینه‌های ترخیص با اعمال ضریب کانتینر روی ردیف‌های کانتینری. */
@@ -55,10 +55,9 @@ export function compute(input) {
   const S = {
     full: runProcedure({ ...shared, rate: rateTotal, vatRate }),
     disc: runProcedure({ ...shared, rate: rateDisc, vatRate }),
-    mel: runProcedure({ ...shared, rate: rateMel, vatRate: melVatRate, extra: lenjFreight }),
+    mel: runProcedure({ ...shared, rate: rateMel, vatRate: melVatRate }),
   };
   const active = S[scenario] ?? S.disc;
-  const cheapest = Object.keys(S).reduce((a, b) => (S[a].total <= S[b].total ? a : b));
 
   /* ---------- خرید کالا ---------- */
   const govBuy = govRate * declValueFX;
@@ -66,8 +65,22 @@ export function compute(input) {
   const purchase = govBuy + freeBuy;
 
   /* ---------- بهای تمام‌شده ---------- */
-  const clearance = sumClearance(rows, containers);
-  const lenj = active.lenj;
+  // کرایه لنج جزو هزینه‌های ترخیص است و فقط در رویه ملوانی سرشکن می‌شود
+  const clearanceRows = sumClearance(rows, containers);
+  const clearanceBy = {
+    full: clearanceRows,
+    disc: clearanceRows,
+    mel: clearanceRows + lenjFreight,
+  };
+  const clearance = clearanceBy[scenario] ?? clearanceRows;
+  const lenj = scenario === "mel" ? lenjFreight : 0;
+
+  // ارزان‌ترین رویه بر مبنای حقوق و عوارض به‌علاوه‌ی ترخیص همان رویه
+  const landedBy = Object.fromEntries(
+    Object.keys(S).map((k) => [k, S[k].total + clearanceBy[k]])
+  );
+  const cheapest = Object.keys(landedBy).reduce((a, b) => (landedBy[a] <= landedBy[b] ? a : b));
+
   const landed = purchase + active.total + clearance + waste;
   const perUnit = qty > 0 ? landed / qty : NaN;
   const revenue = salePrice * qty;
@@ -86,7 +99,7 @@ export function compute(input) {
 
   return {
     commercial, rateDisc, rateMel, melShare, customsValue,
-    S, active, cheapest,
+    S, active, cheapest, clearanceBy, landedBy, clearanceRows,
     govBuy, freeBuy, purchase,
     clearance, lenj, landed, perUnit, revenue, profit, margin,
     taxBase, assumedSales, vatOnSales, vatNet,
@@ -108,7 +121,7 @@ export function buildWarnings(input, c, names) {
   if (isFinite(c.margin) && c.margin < 0)
     w.push({ id: "loss", text: "قیمت فروش پایین‌تر از بهای تمام‌شده هر واحد است." });
   if (c.cheapest !== scenario)
-    w.push({ id: "cheaper", text: `رویه «${names[c.cheapest]}» در این شرایط ${(c.active.total - c.S[c.cheapest].total).toLocaleString("en-US", { maximumFractionDigits: 0 })} کم‌هزینه‌تر تمام می‌شود.` });
+    w.push({ id: "cheaper", text: `رویه «${names[c.cheapest]}» با احتساب ترخیص و کرایه لنج ${(c.landedBy[scenario] - c.landedBy[c.cheapest]).toLocaleString("en-US", { maximumFractionDigits: 0 })} کم‌هزینه‌تر تمام می‌شود.` });
 
   return w;
 }
