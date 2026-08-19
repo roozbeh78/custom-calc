@@ -22,12 +22,12 @@
         <header class="masthead">
           <div>
             <h1 class="mast-t">بهای تمام‌شده واردات</h1>
-            <p class="mast-s">رویه گمرکی و ملوانی · از ارزش اظهار تا سود هر واحد</p>
+            <p class="mast-s">رویه گمرکی و ملوانی</p>
           </div>
           <div class="unitbar" id="unitbar"></div>
         </header>
 
-        <!-- ساختار بهای تمام‌شده -->
+        <!-- ===== خروجی اصلی ===== -->
         <section class="hero">
           <div class="hero-top" id="hero-figs"></div>
 
@@ -37,7 +37,7 @@
           </div>
           <div class="bar" id="bar-cost"></div>
 
-          <div class="axis-lbl" style="margin-top: 12px">
+          <div class="axis-lbl" style="margin-top: 10px">
             <span>درآمد فروش</span>
             <span class="num" id="rev-total"></span>
           </div>
@@ -46,15 +46,17 @@
           <div class="legend" id="legend"></div>
         </section>
 
-        <!-- صورت اول: مقایسه رویه‌ها -->
-        <section class="panel">
-          <div class="phead">
+        <!-- ===== صورت اول: مقایسه رویه‌ها ===== -->
+        <details class="panel" open>
+          <summary class="phead">
             <span class="ptag">01</span>
-            <h2 class="ptitle">مقایسه رویه‌ها</h2>
-          </div>
+            <span class="ptitle">مقایسه رویه‌ها</span>
+            <span class="peek num" id="peek-matrix"></span>
+            <span class="chev" aria-hidden="true"></span>
+          </summary>
           <div class="pbody">
             <div class="pickbar" id="pickbar"></div>
-            <div class="scrollhint">← برای دیدن ستون‌ها، جدول را چپ و راست بکشید →</div>
+            <div class="scrollhint">← جدول را چپ و راست بکشید →</div>
             <div class="scrollx" tabindex="0" role="region" aria-label="جدول مقایسه رویه‌ها">
               <table class="mtx">
                 <colgroup id="mtx-cols"></colgroup>
@@ -62,67 +64,59 @@
                 <tbody id="mtx-body"></tbody>
               </table>
             </div>
-            <div class="note info" style="margin-top: 14px" id="mel-note"></div>
+            <details class="hint">
+              <summary>ماخذ ملوانی چطور حساب شد؟</summary>
+              <div class="hint-body" id="mel-note"></div>
+            </details>
           </div>
-        </section>
+        </details>
 
-        <!-- ورودی‌ها -->
-        <section class="panel">
-          <div class="phead">
-            <span class="ptag">INPUT</span>
-            <h2 class="ptitle">ورودی‌های اظهارنامه</h2>
-          </div>
+        <!-- ===== ورودی‌ها ===== -->
+        <details class="panel">
+          <summary class="phead">
+            <span class="ptag">02</span>
+            <span class="ptitle">ورودی‌های اظهارنامه</span>
+            <span class="peek num" id="peek-inputs"></span>
+            <span class="chev" aria-hidden="true"></span>
+          </summary>
           <div class="pbody">
-            <div class="grid" id="inputs-grid"></div>
-            <div class="note info" style="margin-top: 16px">
-              <span>
-                <b>سه کرایه با هم اشتباه نشوند.</b> «کرایه حمل بین‌المللی» ترم CFR / CPT است و جزو
-                ارزش گمرکی می‌آید (<code>CIF = ارزش کالا + کرایه + بیمه</code>)، پس ماخذ و ارزش
-                افزوده و عوارض روی آن هم اخذ می‌شود — در رویه ملوانی که فاکتور CFR تا کشور همسایه
-                است، این کرایه داخل ارزش کالا لحاظ شده و باید صفر بماند. «کرایه لنج» از کشور همسایه
-                تا ایران در صورت رویه لنجی می‌آید، اما بیرون از ارزش گمرکی است و ماخذ روی آن اخذ
-                نمی‌شود. «کرایه حمل زمینی — بوشهر تا تهران» هم بعد از ترخیص است و در ارزش گمرکی
-                نمی‌آید.
-              </span>
-            </div>
-          </div>
-        </section>
-
-        <div class="two">
-          <section class="panel">
-            <div class="phead">
-              <span class="ptag">02</span>
-              <h2 class="ptitle">خرید کالا</h2>
-            </div>
-            <div class="pbody" id="purchase-out"></div>
-          </section>
-
-          <section class="panel">
-            <div class="phead">
-              <span class="ptag">03</span>
-              <h2 class="ptitle">تحلیل مالیاتی خارج از گمرک</h2>
-            </div>
-            <div class="pbody">
-              <div class="grid" style="margin-bottom: 16px" id="tax-inputs"></div>
-              <div id="tax-out"></div>
-              <div class="note" style="margin-top: 14px">
-                <span>
-                  مبنا <b>ارزش اظهاری</b> است (ارزش گمرکی + جمع حقوق و عوارض)، نه بهای تمام‌شده
-                  واقعی. کرایه لنج در این مبنا نمی‌آید چون خارج از اظهار است.
-                </span>
+            <div class="acc" id="inputs-acc"></div>
+            <details class="hint">
+              <summary>سه کرایه با هم اشتباه نشوند</summary>
+              <div class="hint-body">
+                <b>کرایه حمل بین‌المللی</b> ترم CFR / CPT است و جزو ارزش گمرکی می‌آید
+                (<code>CIF = ارزش کالا + کرایه + بیمه</code>)، پس ماخذ و ارزش افزوده و عوارض روی آن
+                هم اخذ می‌شود. در رویه ملوانی که فاکتور CFR تا کشور همسایه است، این کرایه داخل ارزش
+                کالا لحاظ شده و باید صفر بماند.<br />
+                <b>کرایه لنج</b> از کشور همسایه تا ایران، جزو هزینه‌های ترخیص است و فقط در رویه
+                ملوانی سرشکن می‌شود.<br />
+                <b>کرایه حمل زمینی — بوشهر تا تهران</b> هم بعد از ترخیص است و در ارزش گمرکی نمی‌آید.
               </div>
-            </div>
-          </section>
-        </div>
-
-        <!-- مراحل ترخیص -->
-        <section class="panel">
-          <div class="phead">
-            <span class="ptag">04</span>
-            <h2 class="ptitle">مراحل ترخیص</h2>
+            </details>
           </div>
+        </details>
+
+        <!-- ===== خرید و بهای تمام‌شده ===== -->
+        <details class="panel" open>
+          <summary class="phead">
+            <span class="ptag">03</span>
+            <span class="ptitle">خرید کالا و بهای هر واحد</span>
+            <span class="peek num" id="peek-purchase"></span>
+            <span class="chev" aria-hidden="true"></span>
+          </summary>
+          <div class="pbody" id="purchase-out"></div>
+        </details>
+
+        <!-- ===== مراحل ترخیص ===== -->
+        <details class="panel">
+          <summary class="phead">
+            <span class="ptag">04</span>
+            <span class="ptitle">مراحل ترخیص</span>
+            <span class="peek num" id="peek-clearance"></span>
+            <span class="chev" aria-hidden="true"></span>
+          </summary>
           <div class="pbody">
-            <div class="scrollhint">← برای دیدن ستون مبلغ مؤثر، جدول را چپ و راست بکشید →</div>
+            <div class="scrollhint">← جدول را چپ و راست بکشید →</div>
             <div class="scrollx" tabindex="0" role="region" aria-label="جدول مراحل ترخیص">
               <table class="ctab">
                 <thead>
@@ -147,20 +141,32 @@
               </table>
             </div>
             <button class="addrow" id="add-row">افزودن ردیف</button>
-            <div class="note" style="margin-top: 14px">
-              <span>
-                ردیف‌های «کانتینری» در تعداد کانتینر (<span class="num" id="cont-echo"></span>) ضرب
-                می‌شوند؛ بقیه ثابت‌اند.
-              </span>
-            </div>
+            <p class="micro">
+              ردیف‌های کانتینری در تعداد کانتینر (<span class="num" id="cont-echo"></span>) ضرب
+              می‌شوند. «کرایه لنج» فقط در رویه ملوانی به جمع اضافه می‌شود.
+            </p>
           </div>
-        </section>
+        </details>
 
-        <section class="panel" id="warn-panel" hidden>
-          <div class="phead">
-            <span class="ptag">CHECK</span>
-            <h2 class="ptitle">هشدارها</h2>
+        <!-- ===== مالیات ===== -->
+        <details class="panel">
+          <summary class="phead">
+            <span class="ptag">05</span>
+            <span class="ptitle">مالیات خارج از گمرک</span>
+            <span class="peek num" id="peek-tax"></span>
+            <span class="chev" aria-hidden="true"></span>
+          </summary>
+          <div class="pbody">
+            <div class="grid tight" id="tax-inputs"></div>
+            <div id="tax-out"></div>
+            <p class="micro">
+              مبنا ارزش اظهاری است (ارزش گمرکی + جمع صورت رویه)، نه بهای تمام‌شده واقعی. کرایه لنج در
+              این مبنا نمی‌آید چون خارج از اظهار است.
+            </p>
           </div>
+        </details>
+
+        <section class="panel plain" id="warn-panel" hidden>
           <div class="pbody" id="warnings"></div>
         </section>
 
