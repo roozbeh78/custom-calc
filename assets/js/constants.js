@@ -8,20 +8,20 @@ export const SCENARIO_NAMES = {
 
 export const DEFAULT_INPUT = {
   // ارز و ارزش
-  declRate: 132000,
-  declValueFX: 55000,
-  freeRate: 188000,
+  declRate: 0,
+  declValueFX: 0,
+  freeRate: 0,
   govRate: 0,
-  actualValueFX: 87600,
+  actualValueFX: 0,
 
   // اجزای ارزش گمرکی (CIF)
   intlFreight: 0,
-  insurance: 10525667,
+  insurance: 0,
   hasPolicy: false,
-  policyAmount: 50043532,
+  policyAmount: 0,
 
   // نرخ‌های رویه گمرکی
-  rateTotal: 20,
+  rateTotal: 0,
   dutyRate: 4,
   discountPct: 20,
   vatRate: 10,
@@ -38,9 +38,9 @@ export const DEFAULT_INPUT = {
 
   // مقدار و فروش
   waste: 0,
-  qty: 75000,
-  containers: 0.25,
-  salePrice: 400000,
+  qty: 0,
+  containers: 0,
+  salePrice: 0,
 
   // مالیات
   assumedMargin: 10,
